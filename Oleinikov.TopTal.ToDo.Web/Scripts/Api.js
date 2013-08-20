@@ -1,7 +1,7 @@
 var ToDo;
 (function (ToDo) {
     (function (Api) {
-        Api.baseUrl = "http://localhost:21610/api/";
+        Api.baseUrl = "/api/";
 
         var callInfo = (function () {
             function callInfo(url, method, data) {

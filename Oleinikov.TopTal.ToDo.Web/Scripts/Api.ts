@@ -20,7 +20,7 @@ module ToDo.Api {
 	export interface IPromise<TOut> {
 	}
 
-	export var baseUrl = "http://localhost:21610/api/";
+	export var baseUrl = "/api/";
 
 	export class callInfo<TOut> implements ICallInfo<TOut> {
 		public params = {};
