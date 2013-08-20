@@ -772,8 +772,8 @@
     <Content Include="Scripts\typings\jquery\jquery.d.ts" />
     <Content Include="Scripts\typings\knockout\knockout.amd.d.ts" />
     <Content Include="Scripts\typings\knockout\knockout.d.ts" />
-    <None Include="Views\Demo\ApiPlayground.cshtml" />
-    <None Include="Views\Demo\Demo.cshtml" />
+    <Content Include="Views\Demo\ApiPlayground.cshtml" />
+    <Content Include="Views\Demo\Demo.cshtml" />
     <Content Include="Scripts\typings\linq\linq.3.0.3-Beta4.d.ts" />
     <Content Include="Scripts\typings\linq\linq.d.ts" />
     <Content Include="Scripts\typings\linq\linq.jquery.d.ts" />
