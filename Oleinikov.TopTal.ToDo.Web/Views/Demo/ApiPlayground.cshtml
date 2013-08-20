@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="~/Scripts/ApiDemo.js"></script>
+    <script src="~/Scripts/knockout-2.3.0.debug.js"></script>
+    <script src="~/Scripts/jquery-2.0.3.js"></script>
+</head>
+<body>
+    
+    <p>
+        <label>Controller <select data-bind="options: Apis, optionsText: 'Name', value: Controller"></select></label>
+        <label data-bind="if: Controller">Action: <select data-bind="options: Controller().Actions, optionsText: 'Name', value: Action" ></select></label>
+    </p>
+	<pre data-bind="if: Action(), text: RequestText()" ></pre>
+	<p><label>URL suffix: <input type="text" data-bind="value: UrlPostfix"/></label></p>
+    <textarea data-bind="value: InputData"></textarea>
+    <button data-bind="click: function() { $data.Execute(); }">Execute</button>
+
+    <p><strong>Status</strong>: <span data-bind="text: Status"></span></p>
+    <pre data-bind="text: OutputData()" ></pre>
+
+    <script> Init();</script>
+</body>
+</html>

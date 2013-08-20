@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>ToDo Demo by Igor Oleinikov</title>
+	<script src="../../Scripts/jquery-2.0.3.js"></script>
+	<script src="../../Scripts/linq.js"></script>
+	<script src="../../Scripts/knockout-2.3.0.js"></script>
+	<script src="../../Scripts/moment.js"></script>
+	<script src="../../Scripts/Api.js"></script>
+	<script src="../../Scripts/Api-jquery.js"></script>
+	<script src="../../Scripts/Demo.js"></script>
+	<script src="../../Scripts/metroui/input-control.js"></script>
+	<script src="../../Scripts/metroui/calendar.js"></script>
+	<script src="../../Scripts/metroui/dropdown.js"></script>
+	<link href="../../Content/metroui/modern.css" rel="stylesheet" />
+	<link href="../../Content/layout.css" rel="stylesheet" />
+	<script> ToDo.Demo.Init();</script>
+</head>
+<body class="metrouicss page">
+	<div class="page">
+		<div class="page-header bg-color-blueLight">
+			<header class="page-header-content">
+				<h1>todo list</h1>
+				<h2>demo app for TopTal by Igor Oleinikov</h2>
+			</header>
+		</div>
+		<div data-bind="visible: Token" class="nav-bar bg-color-blue fg-color-white">
+			<div class="nav-bar-inner">
+				<ul class="menu">
+					<li data-role="dropdown">
+						<a href="#"><i class="icon-user-3"></i><strong data-bind="text: CurrentUser.Name"></strong></a>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="#">Edit profile</a>
+							</li>
+							<li>
+								<a href="#" data-bind="click: function() { $data.logout(); }"><i class="icon-exit"></i>Logout</a>
+							</li>
+						</ul>
+					</li>
+					<li data-role="dropdown">
+						<a href="#">Sort by <span data-bind="text: list.orderBy"></span></a>
+						<ul class="dropdown-menu">
+							<!-- ko foreach: list.orderOptions -->
+							<li><a href="#" data-bind="click: function() { $parent.list.orderBy($data); }, css: {'checked': $parent.list.orderBy() == $data }, text: $data"></a></li>
+							<!-- /ko -->
+							<li class="divider"></li>
+							<li>
+								<a href="#" data-bind="click: function() { list.orderDir('asc'); }, css: {'checked': list.orderDir()=='asc'}">from lower to higher</a>
+							</li>
+							<li>
+								<a href="#" data-bind="click: function() { list.orderDir('desc'); }, css: {'checked': list.orderDir()=='desc'}">from higher to lower</a>
+							</li>
+						</ul>
+					</li>
+					<li data-role="dropdown">
+						<a href="#">Show <span data-bind="text: list.filter"></span></a>
+						<ul class="dropdown-menu" data-bind="foreach: list.filterOptions">
+							<li>
+								<a href="#" data-bind="click: function() { $parent.list.filter($data); }, css: {'checked': $parent.list.filter()==$data}, text: $data"></a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="page-region" data-bind="visible: editItem">
+			<h1 data-bind="text: editItem() && editItem().isNew ? 'Create new task' : 'Edit task'"></h1>
+			@*<div class="calendar" data-role="calendar" data-param-lang="en" data-bind="" style="float: right; width: 30%;">
+			</div>*@
+			<div>
+				<div class="input-control text" data-bind="if: editItem">
+					<input type="text" class="big" data-bind="value: editItem().title" placeholder="Title of the task" />
+				</div>
+				<div class="input-control text-box" data-bind="if: editItem">
+					<textarea data-bind="value: editItem().description" placeholder="Description of the task"></textarea>
+				</div>
+				<div class="button-set">
+					Priority <!-- ko foreach: priorities --><button data-bind="text: $data, css: { 'active': $parent.editItem() && $parent.editItem().priority()==$data },
+						click: function() { $parent.editItem() && $parent.editItem().priority($parent.editItem().priority()==$data?'None':$data); }"></button><!-- /ko -->
+					State <!-- ko foreach: states --><button data-bind="text: $data, css: { 'active': $parent.editItem() && $parent.editItem().state()==$data },
+						click: function() { $parent.editItem() && $parent.editItem().state($data); }"></button><!-- /ko -->
+					<label class="input-control checkbox" data-bind="if: editItem">
+						<input type="checkbox" data-bind="checked: editItem().completeDueSet" />
+						<span class="helper">Set date to complete due</span>
+					</label>
+					<div style="display: inline-block; width: 10em;" data-bind="if: editItem() && editItem().completeDueSet">
+						<div class="input-control text datepicker" data-bind="datepicker: editItem().completeDue">
+							<input type="text" />
+							<button class="btn-date"></button>
+						</div>
+					</div>
+				</div>
+				@*<div class="input-control" data-bind="if: editItem">
+					<select data-bind="value: editItem().priority, options: priorities" style="width: 5em;"></select>
+				</div>*@
+			</div>
+		</div>
+
+		<div class="page-region" data-bind="if: Token, visible: !editItem()">
+			<div class="page-region-content">
+				<ul data-bind="foreach: list.items" class="listview fluid">
+					<li data-bind="click: function () { $parent.selectItem($data); }, css: $data.getCssClasses($index()) ">
+						<h3><i data-bind="css: {'icon-checkmark': state()=='Completed', 'icon-meter-medium': state()=='InProgress' }"></i>
+							<span data-bind="text: title"></span>
+						</h3>
+						<p data-bind="text: description"></p>
+						<span data-bind="if: priority() != 'None', attr: { title: priority().toLowerCase() + ' priority' }">
+							<i data-bind="css: { 'icon-warning': priority()=='High', 'icon-thumbs-up': priority()=='Medium', 'icon-thumbs-down': priority()=='Low' }"></i><span data-bind="text: priority().toLowerCase()"></span>
+						</span>
+						<span data-bind="if: completeDue()">
+							<i class="icon-clock"></i><span data-bind="text: completeDue().toLocaleDateString()"></span>
+						</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="message-dialog bg-color-blue" data-bind="visible: !Token() && !isTryingAutoLogin()">
+		<h2>You need to log in or register</h2>
+		<form>
+			<div class="input-control text">
+				<input type="text" data-bind="value: User.Name" placeholder="Enter your name" tabindex="0" />
+				<button class="btn-clear"></button>
+			</div>
+			<div class="input-control password">
+				<input type="password" data-bind="value: User.Password" placeholder="Enter password" tabindex="1" />
+				<button class="btn-reveal"></button>
+			</div>
+			<button data-bind="click: function() { $data.Login(); }" tabindex="2" class="default bg-color-orangeDark"><i class="icon-enter"></i>Login</button>
+			<button data-bind="click: function() { $data.Register(); }" tabindex="3">Register</button>
+		</form>
+	</div>
+
+	<div class="app-bar">
+		<div data-bind="visible: !editItem()">
+			<a href="#" class="app-bar-button" data-bind="click: function() { create(); }"><i class="icon-plus-2"></i>create new task</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem, click: function() { selectedItem().edit(); }"><i class="icon-pencil"></i>edit</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()!='Completed', click: function() { selectedItem().complete(); }"><i class="icon-checkmark"></i>mark as complete</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()=='Completed', click: function() { selectedItem().uncomplete(); }"><i class="icon-cancel-2"></i>unmark as complete</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()!='InProgress', click: function() { selectedItem().startProgress(); }"><i class="icon-meter-fast"></i>start progress</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()=='InProgress', click: function() { selectedItem().stopProgress(); }"><i class="icon-meter-slow"></i>stop progress</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem, click: function() { selectedItem().remove(); }"><i class="icon-cancel-2"></i>delete</a>
+		</div>
+		<div data-bind="visible: editItem">
+			<a href="#" class="app-bar-button" data-bind="visible: editItem() && editItem().title(), click: function() { editItem().done(); }"><i class="icon-checkmark"></i>done</a>
+			<a href="#" class="app-bar-button" data-bind="click: function() { editItem().cancel(); }"><i class="icon-cancel-2"></i>cancel</a>
+		</div>
+	</div>
+</body>
+
+</html>
