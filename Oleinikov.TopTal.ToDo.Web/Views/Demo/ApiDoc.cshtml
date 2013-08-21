@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+	<title>Api documentation</title>
+	<script src="~/Scripts/jquery-2.0.3.js"></script>
+	<script src="~/Scripts/knockout-2.3.0.debug.js"></script>
+	<script src="~/Scripts/ApiDescription.js"></script>
+	<script src="~/Scripts/ApiDoc.js"></script>
+	<link href="../../Content/metroui/modern.css" rel="stylesheet" />
+
+	<script> ToDo.Api.Doc.Init(); </script>
+	<script type="text/html" id="parameter">
+		<h5><em data-bind="text: Name"></em>: <code data-bind="	text: ToDo.Api.Description.TypeKind[Type.Kind]"></code></h5>
+		<p data-bind="text: $data.Description"></p>
+		<div data-bind="template: { name: 'type', data: Type }"></div>
+	</script>
+	<script type="text/html" id="fields">
+		<ul data-bind="foreach: $data">
+			<li data-bind="template: { name: 'parameter', data: $data }"></li>
+		</ul>
+	</script>
+	<script type="text/html" id="type">
+		<div data-bind="if: $data.Fields">
+			<div data-bind="template: { name: 'fields', data: Fields }"></div>
+		</div>
+		<div data-bind="if: $data.Values">
+			Expected one of these values:
+			<span data-bind="foreach: Values">
+				<span data-bind="if: $index() > 0">,</span>
+				<code data-bind="text: $data"></code>
+			</span>
+		</div>
+		<div data-bind="if: $data.ElementType">
+			Expected array with elements of type <code data-bind="text: ToDo.Api.Description.TypeKind[ElementType.Kind]"></code>, wich is:
+			<div data-bind="template: { name: 'type', data: ElementType }"></div>
+		</div>
+	</script>
+	<style>
+		.page-region-content, .page-header-content {
+			min-width: 500px; max-width: 1000px; width: 60%; margin-left: auto; margin-right: auto;padding: .5em 0;
+		}
+	</style>
+</head>
+<body class="metrouicss page">
+	<div class="page-header bg-color-blueLight">
+		<header class="page-header-content">
+			<h1>todo list</h1>
+			<h2>demo app for TopTal by Igor Oleinikov</h2>
+		</header>
+	</div>
+
+	<div class="page-region">
+		<div class="page-region-content">
+			<h1>API Documentation</h1>
+			<h2>Common information</h2>
+			<p><strong>Base URL</strong>: <code data-bind="text: api.BaseUrl"></code></p>
+			<div data-bind="foreach: api.Modules" class="modules">
+				<div class="module">
+					<h2 class="bg-color-green fg-color-white" style="padding: .3em">Module <em data-bind="text: Name"></em></h2>
+					<p data-bind="text: $data.Description"></p>
+					<div class="actions" data-bind="foreach: Actions">
+						<div class="action">
+							<h3 class="bg-color-purple fg-color-white" style="padding: .3em" data-bind="text: Name"></h3>
+							<p data-bind="text: $data.Description"></p>
+							<p>
+								<strong>Request</strong>:
+									<code>
+										<strong data-bind="text: ToDo.Api.Description.HttpMethod[Method]"></strong>
+										<span data-bind="text: $parents[1].api.BaseUrl + Url"></span><span data-bind="	foreach: $data.UrlAppendParameters"><span data-bind="	text: $data.Prefix"></span><em data-bind="	text: $data.Name"></em><span data-bind="	text: $data.Suffix"></span></span>
+										<span data-bind="if: RequireAuthToken">? token = <em>token</em></span>
+										<span data-bind="if: $data.UrlParameters">
+											<span data-bind="foreach: UrlParameters">
+												<span data-bind="text: $parent.RequireAuthToken || $index() > 0 ? '&' : '?'"></span>
+												<span data-bind="text: Name"></span>= <em data-bind="	text: Name"></em>
+											</span>
+										</span>
+									</code>
+							</p>
+							<div data-bind="if: $data.UrlParameters || $data.UrlAppendParameters">
+								<h4>URL Parameters</h4>
+								<div data-bind="template: { name: 'fields', data: $data.UrlAppendParameters }"></div>
+								<div data-bind="template: { name: 'fields', data: $data.UrlParameters }"></div>
+							</div>
+							<div data-bind="if: $data.Data">
+								<h4>Input Data</h4>
+								<div data-bind="template: { name: 'type', data: Data }"></div>
+							</div>
+							<div data-bind="if: $data.ReturnData">
+								<h4>Output Data</h4>
+								<div data-bind="template: { name: 'type', data: ReturnData }"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

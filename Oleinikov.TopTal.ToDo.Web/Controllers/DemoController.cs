@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 
 namespace Oleinikov.TopTal.ToDo.Web.Controllers
 {
     public class DemoController : Controller
     {
-        //
-        // GET: /Demo/
-
         public ActionResult Demo()
         {
             return View();
@@ -21,5 +14,9 @@ namespace Oleinikov.TopTal.ToDo.Web.Controllers
             return View();
         }
 
+        public ActionResult ApiDoc()
+        {
+            return View();
+        }
     }
 }

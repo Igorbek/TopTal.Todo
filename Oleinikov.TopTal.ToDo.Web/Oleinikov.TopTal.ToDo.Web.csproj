@@ -131,6 +131,14 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <TypeScriptCompile Include="Scripts\ApiDoc.ts" />
+    <Content Include="Scripts\ApiDoc.js">
+      <DependentUpon>ApiDoc.ts</DependentUpon>
+    </Content>
+    <Content Include="Scripts\ApiDoc.min.js">
+      <DependentUpon>ApiDoc.ts</DependentUpon>
+    </Content>
+    <Content Include="Views\Demo\ApiDoc.cshtml" />
     <TypeScriptCompile Include="Controllers\Api\Index.ts" />
     <Content Include="Content\fonts\iconFont.svg" />
     <Content Include="Content\fonts\license.txt" />
