@@ -4,16 +4,18 @@
 
 module ToDo.Demo {
 	export class ViewModel {
-		public Token = ko.observable(<string>null);
+		public user = {
+			token: ko.observable(<string>null),
+			name: ko.observable(<string>null),
+			password: ko.observable(<string>null),
+			createdOn: ko.observable(<Date>null),
+			updatedOn: ko.observable(<Date>null),
 
-		public User = {
-			Name: ko.observable(<string>null),
-			Password: ko.observable(<string>null)
-		};
+			confirmPassword: ko.observable(<string>null),
 
-		public CurrentUser = {
-			Name: ko.observable(<string>null),
-			CreatedOn: ko.observable(<Date>null)
+			canSavePassword: ko.observable(false),
+			passwordWorngLength: ko.observable(false),
+			passwordNotMatch: ko.observable(false)
 		};
 
 		public list = {
@@ -22,10 +24,19 @@ module ToDo.Demo {
 			orderDir: ko.observable("desc"),
 			filter: ko.observable("active"),
 			filterOptions: ["active", "completed", "all"],
+			allItems: ko.observableArray<ItemViewModel>([]),
 			items: ko.observable<ItemViewModel[]>([])
 		};
 
-		public items = ko.observableArray<ItemViewModel>([]);
+		public view = {
+			logged: ko.observable(false),
+			login: ko.observable(false),
+			list: ko.observable(false),
+			listWithSelected: ko.observable(false),
+			editItem: ko.observable(false),
+			editProfile: ko.observable(false)
+		};
+
 		public selectedItem = ko.observable<ItemViewModel>(null);
 		public editItem = ko.observable<ItemViewModel>(null);
 
@@ -51,7 +62,7 @@ module ToDo.Demo {
 					this.list.orderBy() == "update time" ? item.updatedOn() : null;
 
 				var result = Enumerable
-					.from(this.items())
+					.from(this.list.allItems())
 					.where((item: ItemViewModel) => this.list.filter() == "active"
 						? item.state() == "New" || item.state() == "InProgress"
 						: this.list.filter() == "completed"
@@ -60,6 +71,18 @@ module ToDo.Demo {
 
 				return (this.list.orderDir() == 'desc' ? result.orderByDescending(orderSelector) : result.orderBy(orderSelector)).toArray();
 			});
+
+			this.view.logged = ko.computed(() => !!this.user.token());
+			this.view.login = ko.computed(() => !this.view.logged() && !this.isTryingAutoLogin());
+			this.view.editItem = ko.computed(() => !this.view.editProfile() && !!this.editItem());
+			this.view.list = ko.computed(() => !this.view.login() && !this.view.editProfile() && !this.view.editItem());
+			this.view.listWithSelected = ko.computed(() => this.view.list() && !!this.selectedItem());
+
+			this.user.passwordWorngLength = ko.computed(() => this.user.password() && this.user.password().length < 6);
+			this.user.passwordNotMatch = ko.computed(() => this.user.password() && !this.user.passwordWorngLength() &&
+				this.user.confirmPassword() && this.user.password() != this.user.confirmPassword());
+			this.user.canSavePassword = ko.computed(() => this.user.password() && this.user.confirmPassword() &&
+				!this.user.passwordWorngLength() && !this.user.passwordNotMatch());
 		}
 
 		public Login() {
@@ -72,16 +95,15 @@ module ToDo.Demo {
 
 		private LoginOrRegister(func: (data: Api.Account.CreateUserModel) => Api.ICallInfo<Api.Account.AuthUserModel>) {
 			return this.processLogin(func({
-				Name: this.User.Name(),
-				Password: this.User.Password()
+				Name: this.user.name(),
+				Password: this.user.password()
 			}).execute(this.ajax));
 		}
 
 		private processLogin(promise: Api.IPromise<Api.Account.AuthUserModel>, showErrors: boolean = true) {
 			var p = promise.then(data => {
-				this.CurrentUser.Name(data.User.Name);
-				this.CurrentUser.CreatedOn(new Date(data.User.CreatedOn));
-				this.Token(data.AuthToken);
+				this.loadUserData(data.User);
+				this.user.token(data.AuthToken);
 				this.LoadItems();
 				if (data.AutoLoginToken)
 					this.saveAutoLoginToken(data.AutoLoginToken);
@@ -104,9 +126,9 @@ module ToDo.Demo {
 
 		public logout() {
 			this.saveAutoLoginToken(null);
-			this.User.Name(null);
-			this.User.Password(null);
-			this.Token(null);
+			this.user.name(null);
+			this.user.password(null);
+			this.user.token(null);
 		}
 
 		public isTryingAutoLogin = ko.observable(false);
@@ -120,12 +142,12 @@ module ToDo.Demo {
 		}
 
 		private LoadItems() {
-			Api.Items.List(this.Token())
+			Api.Items.List(this.user.token())
 				.execute(this.ajax)
 				.then(data => {
-					this.items.destroyAll();
+					this.list.allItems.destroyAll();
 					for (var i in data)
-						this.items.push(new ItemViewModel(this, data[i]));
+						this.list.allItems.push(new ItemViewModel(this, data[i]));
 				})
 				.fail(ViewModel.catchApiError(err => window.alert(err.Message)));
 		}
@@ -136,6 +158,36 @@ module ToDo.Demo {
 
 		public create() {
 			new ItemViewModel(this, { State: "New", Title: "", Priority: "None" }, true).edit();
+		}
+
+		public editProfile() {
+			if (this.view.editProfile())
+				return;
+
+			this.user.password("");
+			this.user.confirmPassword("");
+			this.view.editProfile(true);
+		}
+
+		public cancelEditProfile() {
+			this.user.password("");
+			this.user.confirmPassword("");
+			this.view.editProfile(false);
+		}
+
+		private loadUserData(data: Api.Account.UserInfoModel) {
+			this.user.name(data.Name);
+			this.user.createdOn(new Date(data.CreatedOn));
+			this.user.updatedOn(new Date(data.UpdatedOn));
+		}
+
+		public saveProfile() {
+			var d = { Name: this.user.name(), Password: this.user.password() };
+			this.cancelEditProfile();
+			Api.Account.Update(this.user.token(), d)
+				.execute(this.ajax)
+				.then(data => this.loadUserData(data))
+				.fail(ViewModel.catchApiError(err => window.alert(err.Message)));
 		}
 	}
 
@@ -180,31 +232,13 @@ module ToDo.Demo {
 			this.item.State = this.state();
 		}
 
-		//private tileColors = ["green", "pink", "teal", "yellow", "purple", "orange", "greenDark", "blueDark", "orangeDark"];
-
-		public getCssClasses(index: number) {
-			//var color = this.tileColors[index % this.tileColors.length];
-			var css = { selected: this.model.selectedItem() == this };
-			//css["bg-color-" + color] = true;
-
-			var title = this.title() || "";
-			var description = this.description() || "";
-
-			if (title.length > 40 || description.length > 200)
-				css["triple"] = true;
-			else if (title.length > 20 || description.length > 100)
-				css["double"] = true;
-
-			return css;
-		}
-
 		public remove() {
 			if (this.model.selectedItem() == this)
 				this.model.selectedItem(null);
-			this.model.items.remove(this);
+			this.model.list.allItems.remove(this);
 			if (this.item.Id && !this.isSaving()) {
 				this.isSaving(true);
-				Api.Items.Delete(this.model.Token(), this.item.Id)
+				Api.Items.Delete(this.model.user.token(), this.item.Id)
 					.execute(this.model.ajax)
 					.fail(ViewModel.catchApiError(err => window.alert(err.Message)))
 					.always(() => this.isSaving(false));
@@ -252,7 +286,7 @@ module ToDo.Demo {
 		private done() {
 			if (this.isNew) {
 				this.isNew = false;
-				this.model.items.push(this);
+				this.model.list.allItems.push(this);
 			}
 			this.checkSelected();
 			if (this.model.editItem() == this)
@@ -275,8 +309,8 @@ module ToDo.Demo {
 				return;
 			this.isSaving(true);
 			this.saveToItem();
-			(this.item.Id ? Api.Items.Update(this.model.Token(), this.item.Id, this.item)
-				: Api.Items.Create(this.model.Token(), this.item))
+			(this.item.Id ? Api.Items.Update(this.model.user.token(), this.item.Id, this.item)
+				: Api.Items.Create(this.model.user.token(), this.item))
 				.execute(this.model.ajax)
 				.fail(ViewModel.catchApiError(err => window.alert(err.Message)))
 				.then(data => {

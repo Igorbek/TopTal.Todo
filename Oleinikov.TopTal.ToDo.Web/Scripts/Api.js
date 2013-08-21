@@ -47,6 +47,11 @@ var ToDo;
                 return new Api.callInfo(Api.baseUrl + "login", "POST", data);
             }
             Account.Login = Login;
+
+            function Update(auth, data) {
+                return new Api.callInfo(Api.baseUrl + Account.urlPrefix, "PUT", data).withToken(auth);
+            }
+            Account.Update = Update;
         })(Api.Account || (Api.Account = {}));
         var Account = Api.Account;
 

@@ -24,20 +24,21 @@
 				<h2>demo app for TopTal by Igor Oleinikov</h2>
 			</header>
 		</div>
-		<div data-bind="visible: Token" class="nav-bar bg-color-blue fg-color-white">
+		<div data-bind="visible: user.token" class="nav-bar bg-color-blue fg-color-white">
 			<div class="nav-bar-inner">
 				<ul class="menu">
 					<li data-role="dropdown">
-						<a href="#"><i class="icon-user-3"></i><strong data-bind="text: CurrentUser.Name"></strong></a>
+						<a href="#"><i class="icon-user-3"></i><strong data-bind="text: user.name"></strong></a>
 						<ul class="dropdown-menu">
 							<li>
-								<a href="#">Edit profile</a>
+								<a href="#" data-bind="click: function () { editProfile(); }">Edit profile</a>
 							</li>
 							<li>
-								<a href="#" data-bind="click: function() { $data.logout(); }"><i class="icon-exit"></i>Logout</a>
+								<a href="#" data-bind="click: function() { logout(); }"><i class="icon-exit"></i>Logout</a>
 							</li>
 						</ul>
 					</li>
+					<!-- ko if: view.list -->
 					<li data-role="dropdown">
 						<a href="#">Sort by <span data-bind="text: list.orderBy"></span></a>
 						<ul class="dropdown-menu">
@@ -61,47 +62,67 @@
 							</li>
 						</ul>
 					</li>
+					<!-- /ko -->
 				</ul>
 			</div>
 		</div>
 
-		<div class="page-region" data-bind="visible: editItem">
-			<h1 data-bind="text: editItem() && editItem().isNew ? 'Create new task' : 'Edit task'"></h1>
-			@*<div class="calendar" data-role="calendar" data-param-lang="en" data-bind="" style="float: right; width: 30%;">
-			</div>*@
-			<div>
-				<div class="input-control text" data-bind="if: editItem">
-					<input type="text" class="big" data-bind="value: editItem().title" placeholder="Title of the task" />
+		<div class="page-region" data-bind="if: view.editItem">
+			<h1 data-bind="text: editItem().isNew ? 'Create new task' : 'Edit task'"></h1>
+			<div data-bind="with: editItem">
+				<div class="input-control text">
+					<input type="text" class="big" data-bind="value: title, valueUpdate: 'afterkeydown'" placeholder="Title of the task" />
 				</div>
-				<div class="input-control text-box" data-bind="if: editItem">
-					<textarea data-bind="value: editItem().description" placeholder="Description of the task"></textarea>
+				<div class="input-control text-box">
+					<textarea data-bind="value: description" placeholder="Description of the task"></textarea>
 				</div>
 				<div class="button-set">
-					Priority <!-- ko foreach: priorities --><button data-bind="text: $data, css: { 'active': $parent.editItem() && $parent.editItem().priority()==$data },
-						click: function() { $parent.editItem() && $parent.editItem().priority($parent.editItem().priority()==$data?'None':$data); }"></button><!-- /ko -->
-					State <!-- ko foreach: states --><button data-bind="text: $data, css: { 'active': $parent.editItem() && $parent.editItem().state()==$data },
-						click: function() { $parent.editItem() && $parent.editItem().state($data); }"></button><!-- /ko -->
-					<label class="input-control checkbox" data-bind="if: editItem">
-						<input type="checkbox" data-bind="checked: editItem().completeDueSet" />
+					Priority <!-- ko foreach: $parent.priorities --><button data-bind="text: $data, css: { 'active': $parent.priority()==$data },
+						click: function() { $parent.priority($parent.priority()==$data?'None':$data); }"></button><!-- /ko -->
+					State <!-- ko foreach: $parent.states --><button data-bind="text: $data, css: { 'active': $parent.state()==$data },
+						click: function() { $parent.state($data); }"></button><!-- /ko -->
+					<label class="input-control checkbox">
+						<input type="checkbox" data-bind="checked: completeDueSet" />
 						<span class="helper">Set date to complete due</span>
 					</label>
-					<div style="display: inline-block; width: 10em;" data-bind="if: editItem() && editItem().completeDueSet">
-						<div class="input-control text datepicker" data-bind="datepicker: editItem().completeDue">
+					<div style="display: inline-block; width: 10em;" data-bind="if: completeDueSet">
+						<div class="input-control text datepicker" data-bind="datepicker: completeDue">
 							<input type="text" />
 							<button class="btn-date"></button>
 						</div>
 					</div>
 				</div>
-				@*<div class="input-control" data-bind="if: editItem">
-					<select data-bind="value: editItem().priority, options: priorities" style="width: 5em;"></select>
-				</div>*@
+			</div>
+		</div>
+		
+		<div class="page-region" data-bind="if: view.editProfile">
+			<h1>Profile</h1>
+			<div data-bind="with: user">
+				<div style="display: inline-block; width: 48%; vertical-align: top;">
+					<h2 style="margin: 1em 0;">name</h2>
+					<div data-bind="text: name" style="font-size: 2.5em;"></div>
+				</div><div style="display: inline-block; width: 48%; vertical-align: top; margin-left: 4%;">
+					      <h2 style="margin: 1em 0;">info</h2>
+					      <div><strong>Created</strong>: <span data-bind="text: createdOn().toLocaleDateString()"></span></div>
+					      <div><strong>Updated</strong>: <span data-bind="text: updatedOn().toLocaleDateString()"></span></div>
+				      </div>
+				<h2 style="margin: 1em 0;">change password</h2>
+				<div class="input-control password" style="display: inline-block; width: 48%;">
+					<input type="password" data-bind="value: password, valueUpdate: 'afterkeydown'" placeholder="Type your new password" />
+					<button class="btn-reveal"></button>
+				</div><div class="input-control password" style="display: inline-block; width: 48%; margin-left: 4%;">
+					<input type="password" data-bind="value: confirmPassword, valueUpdate: 'afterkeydown'" placeholder="Confirm your new password" />
+					<button class="btn-reveal"></button>
+				</div>
+				<div data-bind="visible: passwordWorngLength()"><span class="label important">!</span> Password must be at least 6 charchter length.</div>
+				<div data-bind="visible: passwordNotMatch()"><span class="label important">!</span> Password and confirmation does not match.</div>
 			</div>
 		</div>
 
-		<div class="page-region" data-bind="if: Token, visible: !editItem()">
+		<div class="page-region" data-bind="visible: view.list">
 			<div class="page-region-content">
 				<ul data-bind="foreach: list.items" class="listview fluid">
-					<li data-bind="click: function () { $parent.selectItem($data); }, css: $data.getCssClasses($index()) ">
+					<li data-bind="click: function () { $parent.selectItem($data); }, css: { selected: $parent.selectedItem() == $data } ">
 						<h3><i data-bind="css: {'icon-checkmark': state()=='Completed', 'icon-meter-medium': state()=='InProgress' }"></i>
 							<span data-bind="text: title"></span>
 						</h3>
@@ -119,15 +140,15 @@
 
 	</div>
 
-	<div class="message-dialog bg-color-blue" data-bind="visible: !Token() && !isTryingAutoLogin()">
+	<div class="message-dialog bg-color-blue" data-bind="visible: view.login">
 		<h2>You need to log in or register</h2>
 		<form>
 			<div class="input-control text">
-				<input type="text" data-bind="value: User.Name" placeholder="Enter your name" tabindex="0" />
+				<input type="text" data-bind="value: user.name" placeholder="Enter your name" tabindex="0" />
 				<button class="btn-clear"></button>
 			</div>
 			<div class="input-control password">
-				<input type="password" data-bind="value: User.Password" placeholder="Enter password" tabindex="1" />
+				<input type="password" data-bind="value: user.password" placeholder="Enter password" tabindex="1" />
 				<button class="btn-reveal"></button>
 			</div>
 			<button data-bind="click: function() { $data.Login(); }" tabindex="2" class="default bg-color-orangeDark"><i class="icon-enter"></i>Login</button>
@@ -135,19 +156,25 @@
 		</form>
 	</div>
 
-	<div class="app-bar">
-		<div data-bind="visible: !editItem()">
+	<div class="app-bar" data-bind="visible: view.logged">
+		<div data-bind="visible: view.list">
 			<a href="#" class="app-bar-button" data-bind="click: function() { create(); }"><i class="icon-plus-2"></i>create new task</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem, click: function() { selectedItem().edit(); }"><i class="icon-pencil"></i>edit</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()!='Completed', click: function() { selectedItem().complete(); }"><i class="icon-checkmark"></i>mark as complete</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()=='Completed', click: function() { selectedItem().uncomplete(); }"><i class="icon-cancel-2"></i>unmark as complete</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()!='InProgress', click: function() { selectedItem().startProgress(); }"><i class="icon-meter-fast"></i>start progress</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem() && selectedItem().state()=='InProgress', click: function() { selectedItem().stopProgress(); }"><i class="icon-meter-slow"></i>stop progress</a>
-			<a href="#" class="app-bar-button" data-bind="visible: selectedItem, click: function() { selectedItem().remove(); }"><i class="icon-cancel-2"></i>delete</a>
+			<!-- ko if: view.listWithSelected -->
+			<a href="#" class="app-bar-button" data-bind="click: function() { selectedItem().edit(); }"><i class="icon-pencil"></i>edit</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem().state()!='Completed', click: function() { selectedItem().complete(); }"><i class="icon-checkmark"></i>mark as complete</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem().state()=='Completed', click: function() { selectedItem().uncomplete(); }"><i class="icon-cancel-2"></i>unmark as complete</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem().state()!='InProgress', click: function() { selectedItem().startProgress(); }"><i class="icon-meter-fast"></i>start progress</a>
+			<a href="#" class="app-bar-button" data-bind="visible: selectedItem().state()=='InProgress', click: function() { selectedItem().stopProgress(); }"><i class="icon-meter-slow"></i>stop progress</a>
+			<a href="#" class="app-bar-button" data-bind="click: function() { selectedItem().remove(); }"><i class="icon-cancel-2"></i>delete</a>
+			<!-- /ko -->
 		</div>
-		<div data-bind="visible: editItem">
-			<a href="#" class="app-bar-button" data-bind="visible: editItem() && editItem().title(), click: function() { editItem().done(); }"><i class="icon-checkmark"></i>done</a>
+		<div data-bind="if: view.editItem">
+			<a href="#" class="app-bar-button" data-bind="visible: editItem().title(), click: function() { editItem().done(); }"><i class="icon-checkmark"></i>done</a>
 			<a href="#" class="app-bar-button" data-bind="click: function() { editItem().cancel(); }"><i class="icon-cancel-2"></i>cancel</a>
+		</div>
+		<div data-bind="if: view.editProfile">
+			<a href="#" class="app-bar-button" data-bind="visible: user.canSavePassword, click: function () { saveProfile(); }"><i class="icon-checkmark"></i>save new password</a>
+			<a href="#" class="app-bar-button" data-bind="click: function() { view.editProfile(false); }"><i class="icon-cancel-2"></i>cancel</a>
 		</div>
 	</div>
 </body>

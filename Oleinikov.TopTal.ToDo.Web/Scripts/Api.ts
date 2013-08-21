@@ -74,6 +74,10 @@ module ToDo.Api {
 		export function Login(data: Account.CreateUserModel): ICallInfo<Account.AuthUserModel> {
 			return new callInfo(baseUrl + "login", "POST", data);
 		}
+
+		export function Update(auth: string, data: CreateUserModel): ICallInfo<UserInfoModel> {
+			return new callInfo(baseUrl + urlPrefix, "PUT", data).withToken(auth);
+		}
 	}
 
 	export module Items {
