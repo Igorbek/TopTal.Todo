@@ -58,7 +58,7 @@ var ToDo;
                     },
                     {
                         Name: "User",
-                        Description: "information of the user",
+                        Description: "Information of the user.",
                         Type: tUserData
                     }
                 ]
@@ -68,7 +68,8 @@ var ToDo;
                 Fields: [
                     {
                         Name: "Title",
-                        Type: tString
+                        Type: tString,
+                        Required: true
                     },
                     {
                         Name: "Description",
@@ -116,12 +117,14 @@ var ToDo;
                                         {
                                             Name: "Name",
                                             Description: "Name of the new user. Length must be from 1 to 60 character long and contains only letters.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         },
                                         {
                                             Name: "Password",
                                             Description: "Password of the new user. Must be at least 6 character long.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         }
                                     ]
                                 },
@@ -139,12 +142,14 @@ var ToDo;
                                         {
                                             Name: "Name",
                                             Description: "Name of the user to login. Can be passed '_autologin'.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         },
                                         {
                                             Name: "Password",
                                             Description: "Password of the user to login. Can be passed autologin token, if Name set to '_autologin'.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         }
                                     ]
                                 },
@@ -170,12 +175,14 @@ var ToDo;
                                         {
                                             Name: "Name",
                                             Description: "Name of the user to update.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         },
                                         {
                                             Name: "Password",
                                             Description: "New password of the user. Must be at least 6 character long.",
-                                            Type: tString
+                                            Type: tString,
+                                            Required: true
                                         }
                                     ]
                                 },
@@ -235,7 +242,13 @@ var ToDo;
                                 RequireAuthToken: true,
                                 Method: HttpMethod.PUT,
                                 UrlAppendParameters: [
-                                    { Prefix: "/", Name: "id", Description: "Identifier of the task item to update.", Type: tString }
+                                    {
+                                        Prefix: "/",
+                                        Name: "id",
+                                        Description: "Identifier of the task item to update.",
+                                        Type: tString,
+                                        Required: true
+                                    }
                                 ],
                                 Data: tItemData,
                                 ReturnData: tItemData
@@ -250,7 +263,8 @@ var ToDo;
                                         Prefix: "/",
                                         Name: "id",
                                         Description: "Identifier of the task item to delete.",
-                                        Type: tString
+                                        Type: tString,
+                                        Required: true
                                     }
                                 ],
                                 Method: HttpMethod.DELETE

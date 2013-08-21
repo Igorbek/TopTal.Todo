@@ -27,6 +27,7 @@ module ToDo.Api.Description {
 		Name: string;
 		Description?: string;
 		Type?: Type;
+		Required?: boolean;
 	}
 
 	export interface UrlAppendParameter extends Parameter {
@@ -100,7 +101,7 @@ module ToDo.Api.Description {
 			},
 			{
 				Name: "User",
-				Description: "information of the user",
+				Description: "Information of the user.",
 				Type: tUserData
 			}
 		]
@@ -110,7 +111,8 @@ module ToDo.Api.Description {
 		Fields: [
 			{
 				Name: "Title",
-				Type: tString
+				Type: tString,
+				Required: true
 			},
 			{
 				Name: "Description",
@@ -158,12 +160,14 @@ module ToDo.Api.Description {
 								{
 									Name: "Name",
 									Description: "Name of the new user. Length must be from 1 to 60 character long and contains only letters.",
-									Type: tString
+									Type: tString,
+									Required: true
 								},
 								{
 									Name: "Password",
 									Description: "Password of the new user. Must be at least 6 character long.",
-									Type: tString
+									Type: tString,
+									Required: true
 								}
 							]
 						},
@@ -181,12 +185,14 @@ module ToDo.Api.Description {
 								{
 									Name: "Name",
 									Description: "Name of the user to login. Can be passed '_autologin'.",
-									Type: tString
+									Type: tString,
+									Required: true
 								},
 								{
 									Name: "Password",
 									Description: "Password of the user to login. Can be passed autologin token, if Name set to '_autologin'.",
-									Type: tString
+									Type: tString,
+									Required: true
 								}
 							]
 						},
@@ -212,12 +218,14 @@ module ToDo.Api.Description {
 								{
 									Name: "Name",
 									Description: "Name of the user to update.",
-									Type: tString
+									Type: tString,
+									Required: true
 								},
 								{
 									Name: "Password",
 									Description: "New password of the user. Must be at least 6 character long.",
-									Type: tString
+									Type: tString,
+									Required: true
 								}
 							]
 						},
@@ -277,7 +285,13 @@ module ToDo.Api.Description {
 						RequireAuthToken: true,
 						Method: HttpMethod.PUT,
 						UrlAppendParameters: [
-							{ Prefix: "/", Name: "id", Description: "Identifier of the task item to update.", Type: tString}
+							{
+								Prefix: "/",
+								Name: "id",
+								Description: "Identifier of the task item to update.",
+								Type: tString,
+								Required: true
+							}
 						],
 						Data: tItemData,
 						ReturnData: tItemData
@@ -289,7 +303,11 @@ module ToDo.Api.Description {
 						RequireAuthToken: true,
 						UrlAppendParameters: [
 							{
-								Prefix: "/", Name: "id", Description: "Identifier of the task item to delete.", Type: tString
+								Prefix: "/",
+								Name: "id",
+								Description: "Identifier of the task item to delete.",
+								Type: tString,
+								Required: true
 							}
 						],
 						Method: HttpMethod.DELETE

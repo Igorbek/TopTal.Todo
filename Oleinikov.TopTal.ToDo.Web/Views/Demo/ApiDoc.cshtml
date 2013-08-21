@@ -11,7 +11,7 @@
 
 	<script> ToDo.Api.Doc.Init(); </script>
 	<script type="text/html" id="parameter">
-		<h5><em data-bind="text: Name"></em>: <code data-bind="	text: ToDo.Api.Description.TypeKind[Type.Kind]"></code></h5>
+		<h5><em data-bind="text: Name"></em>: <code data-bind="	text: ToDo.Api.Description.TypeKind[Type.Kind]"></code> <span data-bind="visible: $data.Required" class="label important">required</span></h5>
 		<p data-bind="text: $data.Description"></p>
 		<div data-bind="template: { name: 'type', data: Type }"></div>
 	</script>
@@ -67,7 +67,7 @@
 								<strong>Request</strong>:
 									<code>
 										<strong data-bind="text: ToDo.Api.Description.HttpMethod[Method]"></strong>
-										<span data-bind="text: $parents[1].api.BaseUrl + Url"></span><span data-bind="	foreach: $data.UrlAppendParameters"><span data-bind="	text: $data.Prefix"></span><em data-bind="	text: $data.Name"></em><span data-bind="	text: $data.Suffix"></span></span>
+										<span data-bind="text: $parents[1].api.BaseUrl + Url"></span><span data-bind="foreach: $data.UrlAppendParameters"><span data-bind="	text: $data.Prefix"></span><em data-bind="	text: $data.Name"></em><span data-bind="	text: $data.Suffix"></span></span>
 										<span data-bind="if: RequireAuthToken">? token = <em>token</em></span>
 										<span data-bind="if: $data.UrlParameters">
 											<span data-bind="foreach: UrlParameters">
@@ -77,8 +77,9 @@
 										</span>
 									</code>
 							</p>
-							<div data-bind="if: $data.UrlParameters || $data.UrlAppendParameters">
+							<div data-bind="if: $data.UrlParameters || $data.UrlAppendParameters || $data.RequireAuthToken">
 								<h4>URL Parameters</h4>
+								<div data-bind="template: { name: 'fields', data: $data.RequireAuthToken ? [{Name: 'token', Description: 'Authentication token for the current session.', Required: true, Type: {Kind: ToDo.Api.Description.TypeKind['String']}}] : [] }"></div>
 								<div data-bind="template: { name: 'fields', data: $data.UrlAppendParameters }"></div>
 								<div data-bind="template: { name: 'fields', data: $data.UrlParameters }"></div>
 							</div>
